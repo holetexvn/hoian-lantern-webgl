@@ -45,4 +45,5 @@ function frame() {
   stage.composer.render()
   requestAnimationFrame(frame)
 }
+if (new URLSearchParams(location.search).has('debug')) window.__tick = frame
 frame()
