@@ -4,6 +4,7 @@ import { createPointer } from './core/pointer.js'
 import { detectQuality } from './core/quality.js'
 import { state } from './core/state.js'
 import { createChip } from './chip/chip.js'
+import { initScroll } from './core/scroll.js'
 
 const cfg = detectQuality()
 const stage = createStage(document.querySelector('#stage'), cfg.dpr)
@@ -15,6 +16,8 @@ scene.add(chip.group)
 if (new URLSearchParams(location.search).has('debug')) window.__chip = chip
 if (new URLSearchParams(location.search).has('debug')) window.__state = state
 if (new URLSearchParams(location.search).has('debug')) window.__stage = stage
+
+initScroll({ camera })
 
 addEventListener('resize', () => stage.resize())
 
