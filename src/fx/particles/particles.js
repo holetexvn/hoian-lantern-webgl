@@ -22,7 +22,7 @@ export function createParticles(renderer, count = 50000) {
   gpu.setVariableDependencies(velVar, [velVar, posVar])
   gpu.setVariableDependencies(posVar, [velVar, posVar])
 
-  const params = { curl: 1.6, speed: 1.0, size: 26 }
+  const params = { curl: 1.6, speed: 1.0, size: 14 }
   Object.assign(velVar.material.uniforms, {
     uTime: { value: 0 }, uDt: { value: 0 },
     uCurl: { value: params.curl }, uSpeed: { value: params.speed },

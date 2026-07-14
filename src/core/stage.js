@@ -30,19 +30,31 @@ export function createStage(canvas, dpr) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping
 
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x030308)
+  // subtle indigo radial glow instead of a flat void — gives the scene depth
+  const bgCanvas = document.createElement('canvas')
+  bgCanvas.width = bgCanvas.height = 512
+  const bgCtx = bgCanvas.getContext('2d')
+  const bgGrad = bgCtx.createRadialGradient(256, 215, 30, 256, 240, 340)
+  bgGrad.addColorStop(0, '#0c1122')
+  bgGrad.addColorStop(0.5, '#060812')
+  bgGrad.addColorStop(1, '#030308')
+  bgCtx.fillStyle = bgGrad
+  bgCtx.fillRect(0, 0, 512, 512)
+  const bgTex = new THREE.CanvasTexture(bgCanvas)
+  bgTex.colorSpace = THREE.SRGBColorSpace
+  scene.background = bgTex
 
   const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 80)
-  camera.position.set(0, 1.1, 9)
+  camera.position.set(0, 1.2, 9.5)
   scene.add(camera) // so children attached to camera render
 
   const pmrem = new THREE.PMREMGenerator(renderer)
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-  scene.environmentIntensity = 0.5
+  scene.environmentIntensity = 0.35
 
   const lights = {
-    key: new THREE.DirectionalLight(0xd8e6ff, 2.2),
-    rim: new THREE.DirectionalLight(0x8a5cff, 3.0),
+    key: new THREE.DirectionalLight(0xd8e6ff, 1.7),
+    rim: new THREE.DirectionalLight(0x8a5cff, 1.5),
     amb: new THREE.AmbientLight(0x222233, 0.6),
   }
   lights.key.position.set(4, 6, 5)
@@ -51,7 +63,7 @@ export function createStage(canvas, dpr) {
 
   const composer = new EffectComposer(renderer)
   composer.addPass(new RenderPass(scene, camera))
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.9, 0.65, 0.72)
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.5, 0.85)
   composer.addPass(bloomPass)
   const gradePass = new ShaderPass(GradeShader)
   composer.addPass(gradePass)

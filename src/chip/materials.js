@@ -44,14 +44,21 @@ export function createLidTexture(size = 512) {
   c.width = c.height = size
   const g = c.getContext('2d')
   const grad = g.createLinearGradient(0, 0, size, size)
-  grad.addColorStop(0, '#cdd5de'); grad.addColorStop(0.5, '#aab3bf'); grad.addColorStop(1, '#c4ccd6')
+  grad.addColorStop(0, '#3a4049'); grad.addColorStop(0.5, '#272c34'); grad.addColorStop(1, '#333941')
   g.fillStyle = grad
   g.fillRect(0, 0, size, size)
-  g.fillStyle = 'rgba(30,36,46,0.85)'
+  // brushed-metal streaks
+  for (let i = 0; i < 220; i++) {
+    const y = Math.random() * size
+    g.fillStyle = `rgba(255,255,255,${(Math.random() * 0.03).toFixed(3)})`
+    g.fillRect(0, y, size, 1)
+  }
+  g.fillStyle = 'rgba(196,206,220,0.88)'
   g.textAlign = 'center'
-  g.font = `700 ${size * 0.22}px "Segoe UI", sans-serif`
+  g.font = `600 ${size * 0.2}px "Segoe UI", sans-serif`
   g.fillText('H1', size / 2, size * 0.52)
-  g.font = `500 ${size * 0.05}px "Segoe UI", sans-serif`
+  g.fillStyle = 'rgba(196,206,220,0.55)'
+  g.font = `500 ${size * 0.045}px "Segoe UI", sans-serif`
   g.fillText('HOLETEX · NEURAL SILICON', size / 2, size * 0.62)
   const tex = new THREE.CanvasTexture(c)
   tex.colorSpace = THREE.SRGBColorSpace

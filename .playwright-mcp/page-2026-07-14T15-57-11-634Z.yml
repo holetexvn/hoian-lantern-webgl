@@ -1,0 +1,55 @@
+- generic [active] [ref=f17e1]:
+  - main:
+    - generic:
+      - generic:
+        - paragraph: HoleTex · Neural Silicon
+        - heading "H1. Neural Silicon." [level=1]: H1.Neural Silicon.
+        - paragraph: The first chip designed to feel alive. Move your cursor.
+        - generic: scroll
+    - generic:
+      - generic:
+        - generic:
+          - paragraph: 01 · Emergence
+          - heading "Born from darkness." [level=2]
+          - paragraph: "2 nanometers of pure intent, forged for one purpose: thought at the speed of light."
+    - generic:
+      - generic:
+        - generic:
+          - paragraph: 02 · Anatomy
+          - heading "Five layers. One mind." [level=2]: Five layers.One mind.
+          - paragraph: Keep scrolling to open the H1 and meet every layer of the stack.
+    - generic:
+      - generic:
+        - generic:
+          - paragraph: 03 · Dataflow
+          - heading "Data becomes motion." [level=2]
+          - paragraph: Fifty thousand streams of thought per frame, bending around your cursor.
+    - generic:
+      - paragraph: 04 · Numbers
+      - heading "Numbers that matter." [level=2]
+      - generic:
+        - generic:
+          - generic: "0"
+          - generic: TOPS
+          - generic: Neural throughput
+        - generic:
+          - generic: "0"
+          - generic: nm
+          - generic: Process node
+        - generic:
+          - generic: "0"
+          - generic: cores
+          - generic: Tensor engines
+        - generic:
+          - generic: "0"
+          - generic: W
+          - generic: Peak draw
+      - link "Reserve your H1" [ref=f17e3]:
+        - /url: "#act-hero"
+      - generic: HoleTex — a fictional product. WebGL demo built with Three.js + GSAP.
+  - generic:
+    - generic: Vapor-chamber heatspreader
+    - generic: 48× tensor-engine die
+    - generic: 384 MB neural cache
+    - generic: Optical interposer
+    - generic: BGA substrate · 900 pins

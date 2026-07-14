@@ -70,11 +70,11 @@ void main() {
   vec3 v = texture2D(textureVel, uv).xyz;
   v += curlNoise(pos.xyz * 0.35 + uTime * 0.05) * uCurl * uDt;
   v += vec3(2.2, 0.0, 0.0) * uSpeed * uDt;              // stream +x through the chip
-  float pre = smoothstep(1.0, -1.0, pos.x);              // funnel toward core before the chip
-  v.yz -= pos.yz * pre * 1.2 * uDt;
+  float pre = smoothstep(1.0, -1.0, pos.x);              // funnel toward the die plane before the chip
+  v.yz -= (pos.yz - vec2(0.3, 0.0)) * pre * 0.7 * uDt;
   vec3 toC = uCursor - pos.xyz;
   float d = length(toC);
-  v += (toC / max(d, 0.001)) * (3.5 / (1.0 + d * d)) * uDt; // cursor attractor
+  v += (toC / max(d, 0.001)) * (1.4 / (1.0 + 0.6 * d * d)) * uDt; // cursor attractor (gentle)
   v *= 0.96;                                             // drag
   gl_FragColor = vec4(v, 1.0);
 }
@@ -93,7 +93,7 @@ void main() {
     float r1 = rand(uv + fract(uTime));
     float r2 = rand(uv * 2.7 + fract(uTime * 1.3));
     float r3 = rand(uv * 5.1 + fract(uTime * 0.7));
-    p = vec3(-6.0 + r1 * 1.5, (r2 - 0.5) * 2.6, (r3 - 0.5) * 2.6);
+    p = vec3(-6.0 + r1 * 1.5, 0.3 + (r2 - 0.5) * 2.2, (r3 - 0.5) * 2.4);
     life = 0.5 + r1 * 0.8;
   }
   gl_FragColor = vec4(p, life);
@@ -108,10 +108,11 @@ void main() {
   vec4 pos = texture2D(uPos, ref);
   vec3 vel = texture2D(uVel, ref).xyz;
   float speed = clamp(length(vel) * 0.35, 0.0, 1.0);
-  vColor = mix(vec3(0.49, 0.95, 1.0), vec3(0.54, 0.36, 1.0), speed); // cyan → violet
-  vAlpha = smoothstep(0.0, 0.15, pos.w) * smoothstep(6.0, 4.5, pos.x);
+  // darker ramp so additive stacking saturates toward the brand hues instead of clipping white
+  vColor = mix(vec3(0.16, 0.55, 0.68), vec3(0.30, 0.18, 0.72), speed); // deep cyan → deep violet
+  vAlpha = smoothstep(0.0, 0.15, pos.w) * smoothstep(6.0, 4.5, pos.x) * 0.6;
   vec4 mv = modelViewMatrix * vec4(pos.xyz, 1.0);
-  gl_PointSize = uSize / -mv.z; // uSize 26 at ~8 units → ~3px
+  gl_PointSize = uSize / -mv.z; // uSize 14 at ~8 units → ~1.8px
   gl_Position = projectionMatrix * mv;
 }
 `

@@ -42,7 +42,7 @@ export function createFluid(renderer, { simRes = 128, dyeRes = 256 } = {}) {
     renderer.render(scene, cam)
   }
 
-  const params = { velDissipation: 0.998, dyeDissipation: 0.975, force: 0.25, radius: 0.0022 }
+  const params = { velDissipation: 0.998, dyeDissipation: 0.988, force: 0.18, radius: 0.0032 }
   const color = new THREE.Color()
 
   function splat(x, y, dx, dy, time) {
@@ -54,7 +54,8 @@ export function createFluid(renderer, { simRes = 128, dyeRes = 256 } = {}) {
     s.uniforms.uColor.value.set(dx, dy, 0)
     pass(s, velocity.write); velocity.swap()
 
-    color.setHSL((time * 0.06) % 1, 0.95, 0.5)
+    // hue locked to the brand band (teal → indigo) instead of a full rainbow cycle
+    color.setHSL(0.56 + 0.12 * Math.sin(time * 0.15), 0.9, 0.55)
     const k = Math.min(1, Math.hypot(dx, dy) * 0.004)
     s.uniforms.uTarget.value = dye.read.texture
     s.uniforms.uColor.value.set(color.r * k, color.g * k, color.b * k)
@@ -67,6 +68,11 @@ export function createFluid(renderer, { simRes = 128, dyeRes = 256 } = {}) {
 
     const speed = Math.hypot(pointer.vx, pointer.vy)
     if (speed > 2) splat(pointer.nx, pointer.ny, pointer.vx * params.force, -pointer.vy * params.force, time)
+
+    // ambient wandering splat — keeps the hero alive with no pointer input
+    const ax = 0.5 + 0.3 * Math.sin(time * 0.21) + 0.06 * Math.sin(time * 0.9)
+    const ay = 0.45 + 0.24 * Math.sin(time * 0.33 + 1.7)
+    splat(ax, ay, 60 * Math.cos(time * 0.21), 48 * Math.cos(time * 0.33 + 1.7), time + 20)
 
     const a = mats.advect
     a.uniforms.uDt.value = dt

@@ -108,8 +108,8 @@ function frame() {
   chip.setExplode(state.explode)
   chipAngle += dt * 0.16 * (1 - 0.75 * state.explode)
   chip.group.rotation.y = chipAngle + 0.6 * state.explode
-  stage.lights.key.intensity = 2.2 * (0.12 + 0.88 * state.reveal)
-  stage.lights.rim.intensity = 3.0 * (0.25 + 0.75 * state.reveal)
+  stage.lights.key.intensity = 1.7 * (0.12 + 0.88 * state.reveal)
+  stage.lights.rim.intensity = 1.5 * (0.25 + 0.75 * state.reveal)
   annotations.update(state.explode)
 
   if (state.fluid > 0.01) {
@@ -129,7 +129,7 @@ function frame() {
     particles.points.visible = false
   }
 
-  camera.lookAt(0, 0.4 * state.reveal + 0.5 * state.explode, 0)
+  camera.lookAt(state.shift, 0.2 + 0.2 * state.reveal + 0.35 * state.explode + state.lift, 0)
   governor(dt)
   if (window.__fpsSample) window.__fpsSample(dt)
   stage.gradePass.uniforms.uTime.value = elapsed

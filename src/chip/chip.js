@@ -2,7 +2,8 @@ import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { createTraceTexture, createLidTexture, addTracePulse } from './materials.js'
 
-const BASE_Y = { substrate: 0, interposer: 0.16, cache: 0.3, die: 0.3, heatspreader: 0.54 }
+// Closed-stack Y positions: each layer rests on the previous one (no gaps).
+const BASE_Y = { substrate: 0, interposer: 0.13, cache: 0.24, die: 0.25, heatspreader: 0.44 }
 const EXPLODE_Y = { substrate: -1.15, interposer: -0.45, cache: 0.4, die: 1.0, heatspreader: 2.1 }
 
 export function createChip() {
@@ -46,7 +47,7 @@ export function createChip() {
 
   const cache = new THREE.Group()
   const cacheMat = new THREE.MeshStandardMaterial({
-    color: 0x141a2e, roughness: 0.35, metalness: 0.6, emissive: 0x2bd8c4, emissiveIntensity: 0.35,
+    color: 0x0b1d22, roughness: 0.42, metalness: 0.55, emissive: 0x14b8a6, emissiveIntensity: 0.18,
   })
   const cacheGeo = new THREE.BoxGeometry(0.6, 0.12, 2.4)
   const cacheL = new THREE.Mesh(cacheGeo, cacheMat); cacheL.position.x = -1.15
@@ -55,7 +56,7 @@ export function createChip() {
 
   const heatspreader = new THREE.Mesh(
     new RoundedBoxGeometry(3.4, 0.26, 3.4, 3, 0.08),
-    new THREE.MeshStandardMaterial({ map: createLidTexture(), roughness: 0.32, metalness: 0.95 })
+    new THREE.MeshStandardMaterial({ map: createLidTexture(), roughness: 0.38, metalness: 0.9, envMapIntensity: 0.7 })
   )
 
   const defs = { substrate, interposer, cache, die, heatspreader }
@@ -73,7 +74,7 @@ export function createChip() {
   }
 
   function setReveal(t) {
-    group.position.y = -3.4 * (1 - t * t)
+    group.position.y = -5.6 * (1 - t * t)
     for (const mt of pulsed) mt.emissiveIntensity = 0.1 + 1.3 * t
   }
 
