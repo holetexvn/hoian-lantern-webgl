@@ -4,8 +4,15 @@ import { state } from './state.js'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export function initScroll({ camera }) {
+export function initScroll({ camera, reduced }) {
   const scrub = 0.8
+
+  if (reduced) {
+    state.fluid = 0; state.reveal = 1; state.explode = 0; state.flow = 0.25
+    camera.position.set(0, 1.1, 8)
+    document.querySelectorAll('.spec-value').forEach((el) => { el.textContent = el.dataset.count })
+    return
+  }
 
   // Act 1 → 2: fluid dissolves, chip reveals, camera pushes in
   gsap.timeline({ scrollTrigger: { trigger: '#act-reveal', start: 'top bottom', end: 'top top', scrub } })

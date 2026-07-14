@@ -20,3 +20,17 @@ export function detectQuality() {
     particles: cfg.particles,
   }
 }
+
+// Samples the first ~4s; if avg FPS < 45, calls onDowngrade(fps) once.
+export function createFpsGovernor(onDowngrade) {
+  let t = 0, frames = 0, done = false
+  return function sample(dt) {
+    if (done) return
+    t += dt; frames++
+    if (t >= 4) {
+      done = true
+      const fps = frames / t
+      if (fps < 45) onDowngrade(fps)
+    }
+  }
+}

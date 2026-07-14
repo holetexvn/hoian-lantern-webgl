@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { createStage } from './core/stage.js'
 import { createPointer } from './core/pointer.js'
-import { detectQuality } from './core/quality.js'
+import { detectQuality, createFpsGovernor } from './core/quality.js'
 import { state } from './core/state.js'
 import { createChip } from './chip/chip.js'
 import { initScroll } from './core/scroll.js'
@@ -9,6 +9,13 @@ import { initCursor } from './fx/cursor.js'
 import { createAnnotations } from './ui/annotations.js'
 import { createFluid } from './fx/fluid/fluid.js'
 import { createParticles } from './fx/particles/particles.js'
+
+const gl2test = document.createElement('canvas').getContext('webgl2')
+if (!gl2test) {
+  document.querySelector('#fallback').hidden = false
+  document.querySelector('#content').style.display = 'none'
+  throw new Error('WebGL2 required')
+}
 
 const cfg = detectQuality()
 const stage = createStage(document.querySelector('#stage'), cfg.dpr)
@@ -21,8 +28,16 @@ if (new URLSearchParams(location.search).has('debug')) window.__chip = chip
 if (new URLSearchParams(location.search).has('debug')) window.__state = state
 if (new URLSearchParams(location.search).has('debug')) window.__stage = stage
 
-initScroll({ camera })
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+initScroll({ camera, reduced })
 initCursor()
+
+const governor = createFpsGovernor((fps) => {
+  console.warn(`[h1] avg ${fps.toFixed(0)} fps < 45 — reducing pixel ratio`)
+  const lowered = Math.max(1, cfg.dpr - 0.5)
+  renderer.setPixelRatio(lowered)
+  stage.composer.setPixelRatio(lowered)
+})
 
 const annotations = createAnnotations(document.querySelector('#annotations'), chip, camera)
 
@@ -54,11 +69,34 @@ function updateCursorWorld() {
   cursorWorld.copy(camera.position).addScaledVector(rayDir, t)
 }
 
+const debug = new URLSearchParams(location.search).has('debug')
+if (debug) {
+  window.__state = state
+  window.__chip = chip
+  const fpsEl = document.querySelector('#fps')
+  fpsEl.hidden = false
+  let acc = 0, n = 0
+  setInterval(() => { if (n) fpsEl.textContent = `${(n / acc).toFixed(0)} fps · tier ${cfg.tier}`; acc = 0; n = 0 }, 500)
+  window.__fpsSample = (dt) => { acc += dt; n++ }
+  const { default: GUI } = await import('lil-gui')
+  const gui = new GUI({ title: 'H1 debug' })
+  gui.add(stage.bloomPass, 'strength', 0, 3).name('bloom')
+  const f = gui.addFolder('fluid')
+  f.add(fluid.params, 'force', 0, 1)
+  f.add(fluid.params, 'radius', 0.0005, 0.01)
+  f.add(fluid.params, 'dyeDissipation', 0.9, 1)
+  const p = gui.addFolder('particles')
+  p.add(particles.params, 'curl', 0, 5)
+  p.add(particles.params, 'speed', 0, 3)
+  p.add(particles.params, 'size', 5, 80)
+}
+
 addEventListener('resize', () => { stage.resize(); fitFluidPlane() })
 
 const clock = new THREE.Clock()
 let elapsed = 0
 function frame() {
+  if (document.hidden) { requestAnimationFrame(frame); return }
   const dt = Math.min(clock.getDelta(), 0.05)
   elapsed += dt
   pointer.update(dt)
@@ -90,6 +128,8 @@ function frame() {
   }
 
   camera.lookAt(0, 0.4 * state.reveal + 0.5 * state.explode, 0)
+  governor(dt)
+  if (window.__fpsSample) window.__fpsSample(dt)
   stage.gradePass.uniforms.uTime.value = elapsed
   stage.composer.render()
   requestAnimationFrame(frame)
