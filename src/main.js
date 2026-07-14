@@ -96,6 +96,49 @@ new GLTFLoader(manager).load('/models/hoian.glb', (gltf) => {
   scene.add(model)
 })
 
+// HoleTex signboard — lacquered wood, gold lettering, hung above the front door
+function signTexture() {
+  const c = document.createElement('canvas')
+  c.width = 1024; c.height = 288
+  const g = c.getContext('2d')
+  const wood = g.createLinearGradient(0, 0, 0, 288)
+  wood.addColorStop(0, '#4a1a12')
+  wood.addColorStop(0.5, '#331109')
+  wood.addColorStop(1, '#260c07')
+  g.fillStyle = wood
+  g.fillRect(0, 0, 1024, 288)
+  g.strokeStyle = '#c89b52'
+  g.lineWidth = 6
+  g.strokeRect(18, 18, 988, 252)
+  g.lineWidth = 2
+  g.strokeRect(34, 34, 956, 220)
+  g.fillStyle = '#f2c66b'
+  g.textAlign = 'center'
+  g.textBaseline = 'middle'
+  g.shadowColor = 'rgba(255,190,90,0.55)'
+  g.shadowBlur = 26
+  g.font = '600 150px Georgia, "Times New Roman", serif'
+  g.fillText('HoleTex', 512, 138)
+  g.shadowBlur = 0
+  g.font = '24px Georgia, serif'
+  g.fillText('◆', 92, 144)
+  g.fillText('◆', 932, 144)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  t.anisotropy = 8
+  return t
+}
+const sign = new THREE.Group()
+const signBoard = new THREE.Mesh(
+  new THREE.PlaneGeometry(1.0, 0.28),
+  new THREE.MeshBasicMaterial({ map: signTexture() })
+)
+signBoard.position.y = -0.14 // pivot at the top edge so it swings like a hung sign
+sign.add(signBoard)
+// clear wall strip between the lantern wire and the upper windows (probed via raycast)
+sign.position.set(0.78, 2.5, -0.2)
+scene.add(sign)
+
 // mirror-calm river surface all around the diorama
 const water = new Reflector(new THREE.CircleGeometry(60, 64), {
   textureWidth: Math.floor(innerWidth * Math.min(devicePixelRatio, 2) * 0.5),
@@ -172,7 +215,7 @@ addEventListener('resize', () => {
   composer.setSize(innerWidth, innerHeight)
 })
 
-window.__dbg = { camera, controls }
+window.__dbg = { camera, controls, scene, THREE }
 
 const clock = new THREE.Clock()
 let t = 0
@@ -199,6 +242,7 @@ function frame() {
 
   warmA.intensity = 26 + Math.sin(t * 2.3) * 2.5   // gentle lantern flicker
   warmB.intensity = 14 + Math.sin(t * 1.7 + 1.2) * 1.6
+  sign.rotation.x = Math.sin(t * 0.8) * 0.035 - 0.02  // sign swings gently in the breeze
 
   controls.update()
   composer.render()
