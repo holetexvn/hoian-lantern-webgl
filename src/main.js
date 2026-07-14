@@ -335,7 +335,7 @@ window.__dbg = { camera, controls, scene, THREE }
 const clock = new THREE.Clock()
 let t = 0
 function frame() {
-  const dt = Math.min(clock.getDelta(), 0.05)
+  const dt = window.__fixedDt || Math.min(clock.getDelta(), 0.05) // fixed dt = deterministic offline capture
   t += dt
 
   for (const f of floaters) {

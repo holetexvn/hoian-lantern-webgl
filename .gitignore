@@ -3,3 +3,5 @@ dist/
 .superpowers/
 .playwright-mcp/
 .vite/
+.frames/
+*.mp4
