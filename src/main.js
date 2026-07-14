@@ -5,6 +5,7 @@ import { detectQuality } from './core/quality.js'
 import { state } from './core/state.js'
 import { createChip } from './chip/chip.js'
 import { initScroll } from './core/scroll.js'
+import { initCursor } from './fx/cursor.js'
 import { createAnnotations } from './ui/annotations.js'
 import { createFluid } from './fx/fluid/fluid.js'
 import { createParticles } from './fx/particles/particles.js'
@@ -21,6 +22,7 @@ if (new URLSearchParams(location.search).has('debug')) window.__state = state
 if (new URLSearchParams(location.search).has('debug')) window.__stage = stage
 
 initScroll({ camera })
+initCursor()
 
 const annotations = createAnnotations(document.querySelector('#annotations'), chip, camera)
 
