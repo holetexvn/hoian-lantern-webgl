@@ -22,9 +22,9 @@ bg.width = 16; bg.height = 512
 const bgc = bg.getContext('2d')
 const grad = bgc.createLinearGradient(0, 0, 0, 512)
 grad.addColorStop(0, '#0b0e22')
-grad.addColorStop(0.55, '#181a38')
-grad.addColorStop(0.85, '#3a2c47')
-grad.addColorStop(1, '#54384a')
+grad.addColorStop(0.55, '#171a36')
+grad.addColorStop(0.88, '#241f38')
+grad.addColorStop(1, '#191624')
 bgc.fillStyle = grad
 bgc.fillRect(0, 0, 16, 512)
 const bgTex = new THREE.CanvasTexture(bg)
@@ -171,6 +171,8 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight)
   composer.setSize(innerWidth, innerHeight)
 })
+
+window.__dbg = { camera, controls }
 
 const clock = new THREE.Clock()
 let t = 0
