@@ -7,7 +7,7 @@ import { createChip } from './chip/chip.js'
 
 const cfg = detectQuality()
 const stage = createStage(document.querySelector('#stage'), cfg.dpr)
-const { renderer, scene, camera } = stage
+const { renderer, scene, camera, composer, gradePass } = stage
 const pointer = createPointer()
 
 const chip = createChip()
@@ -34,7 +34,8 @@ function frame() {
   stage.lights.rim.intensity = 3.0 * (0.25 + 0.75 * state.reveal)
 
   camera.lookAt(0, 0.4 * state.reveal + 0.5 * state.explode, 0)
-  renderer.render(scene, camera)
+  stage.gradePass.uniforms.uTime.value = elapsed
+  stage.composer.render()
   requestAnimationFrame(frame)
 }
 frame()
