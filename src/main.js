@@ -14,6 +14,7 @@ const chip = createChip()
 scene.add(chip.group)
 if (new URLSearchParams(location.search).has('debug')) window.__chip = chip
 if (new URLSearchParams(location.search).has('debug')) window.__state = state
+if (new URLSearchParams(location.search).has('debug')) window.__stage = stage
 
 addEventListener('resize', () => stage.resize())
 
