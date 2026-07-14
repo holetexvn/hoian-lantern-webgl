@@ -3,18 +3,17 @@ import { createStage } from './core/stage.js'
 import { createPointer } from './core/pointer.js'
 import { detectQuality } from './core/quality.js'
 import { state } from './core/state.js'
+import { createChip } from './chip/chip.js'
 
 const cfg = detectQuality()
 const stage = createStage(document.querySelector('#stage'), cfg.dpr)
 const { renderer, scene, camera } = stage
 const pointer = createPointer()
 
-// TEMP test cube — removed in Task 3
-const cube = new THREE.Mesh(
-  new THREE.BoxGeometry(1.5, 1.5, 1.5),
-  new THREE.MeshStandardMaterial({ color: 0x7df2ff, metalness: 0.8, roughness: 0.3 })
-)
-scene.add(cube)
+const chip = createChip()
+scene.add(chip.group)
+if (new URLSearchParams(location.search).has('debug')) window.__chip = chip
+if (new URLSearchParams(location.search).has('debug')) window.__state = state
 
 addEventListener('resize', () => stage.resize())
 
@@ -26,7 +25,12 @@ function frame() {
   pointer.update(dt)
 
   // FX UPDATE (tasks append blocks here)
-  cube.rotation.set(elapsed * 0.4, elapsed * 0.6, 0)
+  chip.update(elapsed)
+  chip.setReveal(state.reveal)
+  chip.setExplode(state.explode)
+  chip.group.rotation.y = elapsed * 0.16 * (1 - 0.75 * state.explode) + 0.6 * state.explode
+  stage.lights.key.intensity = 2.2 * (0.12 + 0.88 * state.reveal)
+  stage.lights.rim.intensity = 3.0 * (0.25 + 0.75 * state.reveal)
 
   camera.lookAt(0, 0.4 * state.reveal + 0.5 * state.explode, 0)
   renderer.render(scene, camera)
