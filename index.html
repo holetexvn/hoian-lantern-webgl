@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>H1 — Neural Silicon | HoleTex</title>
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <div id="cursor" aria-hidden="true"><div class="cursor-dot"></div><div class="cursor-ring"></div></div>
+
+  <main id="content">
+    <section class="act" id="act-hero">
+      <h1 class="hero-title"><span>H1.</span><br />Neural Silicon.</h1>
+      <p class="hero-sub">The first chip designed to feel alive. Move your cursor.</p>
+      <div class="scroll-hint">scroll &darr;</div>
+    </section>
+
+    <section class="act" id="act-reveal">
+      <div class="copy">
+        <h2>Born from darkness.</h2>
+        <p>2 nanometers of pure intent, forged for one purpose: thought at the speed of light.</p>
+      </div>
+    </section>
+
+    <section class="act" id="act-explode">
+      <div class="copy">
+        <h2>Five layers.<br />One mind.</h2>
+        <p>Keep scrolling to open the H1 and meet every layer of the stack.</p>
+      </div>
+    </section>
+
+    <section class="act" id="act-flow">
+      <div class="copy copy--right">
+        <h2>Data becomes motion.</h2>
+        <p>Fifty thousand streams of thought per frame, bending around your cursor.</p>
+      </div>
+    </section>
+
+    <section class="act" id="act-specs">
+      <h2 class="specs-title">Numbers that matter.</h2>
+      <div class="spec-grid">
+        <div class="spec"><span class="spec-value" data-count="128">0</span><span class="spec-unit">TOPS</span><span class="spec-label">Neural throughput</span></div>
+        <div class="spec"><span class="spec-value" data-count="2">0</span><span class="spec-unit">nm</span><span class="spec-label">Process node</span></div>
+        <div class="spec"><span class="spec-value" data-count="48">0</span><span class="spec-unit">cores</span><span class="spec-label">Tensor engines</span></div>
+        <div class="spec"><span class="spec-value" data-count="9">0</span><span class="spec-unit">W</span><span class="spec-label">Peak draw</span></div>
+      </div>
+      <a class="cta" href="#act-hero" data-magnetic>Reserve your H1</a>
+      <footer>HoleTex — a fictional product. WebGL demo built with Three.js + GSAP.</footer>
+    </section>
+  </main>
+
+  <div id="annotations"></div>
+  <div id="fps" hidden></div>
+  <div id="fallback" hidden>
+    <h2>H1 needs WebGL2.</h2>
+    <p>This demo requires a browser with WebGL2 support. Please try Chrome, Edge or Firefox on a desktop GPU.</p>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
