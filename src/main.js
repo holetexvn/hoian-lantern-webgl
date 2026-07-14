@@ -11,7 +11,7 @@ import { createFluid } from './fx/fluid/fluid.js'
 import { createParticles } from './fx/particles/particles.js'
 
 const gl2test = document.createElement('canvas').getContext('webgl2')
-if (!gl2test) {
+if (!gl2test || !gl2test.getExtension('EXT_color_buffer_float')) {
   document.querySelector('#fallback').hidden = false
   document.querySelector('#content').style.display = 'none'
   throw new Error('WebGL2 required')
@@ -95,6 +95,7 @@ addEventListener('resize', () => { stage.resize(); fitFluidPlane() })
 
 const clock = new THREE.Clock()
 let elapsed = 0
+let chipAngle = 0
 function frame() {
   if (document.hidden) { requestAnimationFrame(frame); return }
   const dt = Math.min(clock.getDelta(), 0.05)
@@ -105,7 +106,8 @@ function frame() {
   chip.update(elapsed)
   chip.setReveal(state.reveal)
   chip.setExplode(state.explode)
-  chip.group.rotation.y = elapsed * 0.16 * (1 - 0.75 * state.explode) + 0.6 * state.explode
+  chipAngle += dt * 0.16 * (1 - 0.75 * state.explode)
+  chip.group.rotation.y = chipAngle + 0.6 * state.explode
   stage.lights.key.intensity = 2.2 * (0.12 + 0.88 * state.reveal)
   stage.lights.rim.intensity = 3.0 * (0.25 + 0.75 * state.reveal)
   annotations.update(state.explode)

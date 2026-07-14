@@ -37,7 +37,7 @@ export function createStage(canvas, dpr) {
   scene.add(camera) // so children attached to camera render
 
   const pmrem = new THREE.PMREMGenerator(renderer)
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.06).texture
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
   scene.environmentIntensity = 0.5
 
   const lights = {
