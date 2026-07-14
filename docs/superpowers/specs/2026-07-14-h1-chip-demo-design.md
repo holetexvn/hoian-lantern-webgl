@@ -59,7 +59,7 @@ fable-5-demo/
 
 - `quality.js`: đo DPR + `hardwareConcurrency` + probe FPS vài giây đầu → 3 tier:
   - fluid sim resolution 128 / 256 / 512
-  - particle count 10k / 30k / 100k
+  - particle count 10k / 50k / 100k (tier giữa là mặc định, khớp "~50k" ở màn 4)
   - DPR clamp 1 / 1.5 / 2
 - Chỉ chạy fluid pass khi hero còn trong viewport. Tab ẩn thì pause RAF.
 - `prefers-reduced-motion`: bỏ scrub animation, thay bằng fade tĩnh.
