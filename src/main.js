@@ -7,6 +7,7 @@ import { createChip } from './chip/chip.js'
 import { initScroll } from './core/scroll.js'
 import { createAnnotations } from './ui/annotations.js'
 import { createFluid } from './fx/fluid/fluid.js'
+import { createParticles } from './fx/particles/particles.js'
 
 const cfg = detectQuality()
 const stage = createStage(document.querySelector('#stage'), cfg.dpr)
@@ -40,6 +41,17 @@ function fitFluidPlane() {
 }
 fitFluidPlane()
 
+const particles = createParticles(renderer, cfg.particles)
+scene.add(particles.points)
+const cursorWorld = new THREE.Vector3(0, 0, 100)
+const rayDir = new THREE.Vector3()
+function updateCursorWorld() {
+  rayDir.set(pointer.nx * 2 - 1, pointer.ny * 2 - 1, 0.5).unproject(camera).sub(camera.position).normalize()
+  if (Math.abs(rayDir.z) < 1e-4) return
+  const t = -camera.position.z / rayDir.z
+  cursorWorld.copy(camera.position).addScaledVector(rayDir, t)
+}
+
 addEventListener('resize', () => { stage.resize(); fitFluidPlane() })
 
 const clock = new THREE.Clock()
@@ -65,6 +77,14 @@ function frame() {
     fluidPlane.visible = true
   } else {
     fluidPlane.visible = false
+  }
+
+  if (state.flow > 0.005) {
+    updateCursorWorld()
+    particles.update(dt, elapsed, cursorWorld, state.flow)
+    particles.points.visible = true
+  } else {
+    particles.points.visible = false
   }
 
   camera.lookAt(0, 0.4 * state.reveal + 0.5 * state.explode, 0)
