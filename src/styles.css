@@ -1,30 +1,32 @@
 :root {
-  --cream: #fdf3e3; --ink: #3a3230; --dim: #8d7f74; --accent: #e6564e;
+  --night: #10142a; --ink: #f4ead8; --dim: #9a8f9e; --lantern: #ffb85c; --accent: #ff5a4e;
   --mono: "Cascadia Mono", Consolas, monospace;
 }
 * { margin: 0; box-sizing: border-box; }
 body {
-  background: var(--cream); color: var(--ink);
+  background: var(--night); color: var(--ink);
   font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
   overflow: hidden;
 }
 #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
 
 #loader {
-  position: fixed; inset: 0; z-index: 20; background: var(--cream);
+  position: fixed; inset: 0; z-index: 20; background: var(--night);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.1rem;
-  transition: opacity 0.6s ease;
+  transition: opacity 0.8s ease;
 }
 #loader.done { opacity: 0; pointer-events: none; }
-.loader-title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 650; letter-spacing: -0.02em; }
-.loader-bar { width: min(320px, 60vw); height: 2px; background: rgba(58, 50, 48, 0.15); border-radius: 2px; overflow: hidden; }
-#loader-fill { display: block; width: 0%; height: 100%; background: var(--accent); transition: width 0.2s ease; }
+.loader-title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 650; letter-spacing: -0.01em; }
+.loader-title span { font-weight: 300; color: var(--lantern); }
+.loader-bar { width: min(320px, 60vw); height: 2px; background: rgba(244, 234, 216, 0.15); border-radius: 2px; overflow: hidden; }
+#loader-fill { display: block; width: 0%; height: 100%; background: var(--lantern); transition: width 0.2s ease; }
 #loader-pct { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.18em; color: var(--dim); }
 
 .ui { position: fixed; z-index: 10; pointer-events: none; }
 .ui a { pointer-events: auto; color: inherit; }
 .ui-top { top: 2rem; left: 2.4rem; right: 2.4rem; display: flex; align-items: baseline; justify-content: space-between; }
-.ui-title { font-size: 1.15rem; font-weight: 650; letter-spacing: -0.01em; }
+.ui-title { font-size: 1.15rem; font-weight: 650; }
+.ui-title span { font-weight: 300; color: var(--lantern); }
 .ui-hint { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--dim); }
 .ui-bottom { bottom: 1.6rem; left: 2.4rem; font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.12em; color: var(--dim); }
 
