@@ -80,6 +80,34 @@ manager.onProgress = (_url, loaded, total) => {
 }
 manager.onLoad = () => { loaderEl.classList.add('done') }
 
+// carve a region of the fused mesh into its own mesh (same attributes, new index)
+function extractRegion(mesh, worldBox) {
+  const geo = mesh.geometry
+  const pos = geo.attributes.position
+  const idx = geo.index ? geo.index.array : null
+  const triCount = (idx ? idx.length : pos.count) / 3
+  const keep = []
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3()
+  for (let i = 0; i < triCount; i++) {
+    const i0 = idx ? idx[i * 3] : i * 3
+    const i1 = idx ? idx[i * 3 + 1] : i * 3 + 1
+    const i2 = idx ? idx[i * 3 + 2] : i * 3 + 2
+    a.fromBufferAttribute(pos, i0).applyMatrix4(mesh.matrixWorld)
+    b.fromBufferAttribute(pos, i1).applyMatrix4(mesh.matrixWorld)
+    c.fromBufferAttribute(pos, i2).applyMatrix4(mesh.matrixWorld)
+    a.add(b).add(c).multiplyScalar(1 / 3)
+    if (worldBox.containsPoint(a)) keep.push(i0, i1, i2)
+  }
+  const g2 = new THREE.BufferGeometry()
+  for (const name in geo.attributes) g2.setAttribute(name, geo.attributes[name])
+  g2.setIndex(keep)
+  return new THREE.Mesh(g2, mesh.material)
+}
+
+// the sailing boat — a copy of the docked sampan, carved out of the diorama
+const sail = new THREE.Group()
+scene.add(sail)
+
 // the diorama — normalized to ~5.4 world units wide, base resting at y=0
 let waterY = 0
 new GLTFLoader(manager).load('/models/hoian.glb', (gltf) => {
@@ -94,6 +122,37 @@ new GLTFLoader(manager).load('/models/hoian.glb', (gltf) => {
   model.position.z -= center.z
   model.position.y -= scaled.min.y
   scene.add(model)
+  model.updateWorldMatrix(true, true)
+
+  // carve the docked boat (probed world bounds; minY at the waterline so the
+  // missing underside stays below the mirror surface)
+  let dioramaMesh = null
+  model.traverse(o => { if (!dioramaMesh && o.isMesh && o.geometry.attributes.position.count > 10000) dioramaMesh = o })
+  const boatBox = new THREE.Box3(
+    new THREE.Vector3(-1.35, 0.53, 1.05),
+    new THREE.Vector3(1.45, 0.95, 1.9)
+  )
+  const boatMesh = extractRegion(dioramaMesh, boatBox)
+  const holder = new THREE.Group()
+  holder.applyMatrix4(dioramaMesh.matrixWorld)
+  holder.add(boatMesh)
+  const offset = new THREE.Group()
+  offset.position.set(-0.05, -0.52, -1.47) // pivot: boat center at the waterline
+  offset.add(holder)
+  sail.add(offset)
+
+  // lantern warmth aboard the sailing boat
+  const sailGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture('rgba(255,230,185,1)', 'rgba(255,130,55,0.75)'),
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.8,
+  }))
+  sailGlow.scale.set(0.4, 0.4, 1)
+  sailGlow.material.opacity = 0.65
+  sailGlow.position.y = 0.22
+  sail.add(sailGlow)
+  const sailLight = new THREE.PointLight(0xffa050, 1.7, 4, 2)
+  sailLight.position.y = 0.35
+  sail.add(sailLight)
 })
 
 // HoleTex signboard — lacquered wood, gold lettering, hung above the front door
@@ -233,45 +292,6 @@ for (let i = 0; i < 22; i++) {
 }
 scene.add(skyGroup)
 
-// the night boat — a dark sampan with a warm lantern, circling like Tokyo's tram
-function makeBoat() {
-  const boat = new THREE.Group()
-  const pts = []
-  for (let i = 0; i <= 8; i++) {
-    const a = (i / 8) * Math.PI * 0.5
-    pts.push(new THREE.Vector2(Math.sin(a) * 0.5, (1 - Math.cos(a)) * 0.28))
-  }
-  const hull = new THREE.Mesh(
-    new THREE.LatheGeometry(pts, 20),
-    new THREE.MeshStandardMaterial({ color: 0x0b0805, roughness: 0.75, metalness: 0.05, side: THREE.DoubleSide })
-  )
-  hull.rotation.x = Math.PI
-  hull.position.y = 0.15
-  hull.scale.set(2.2, 0.5, 0.4) // long, low sampan silhouette
-  boat.add(hull)
-  const pole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.012, 0.012, 0.55, 6),
-    new THREE.MeshStandardMaterial({ color: 0x241608, roughness: 0.8 })
-  )
-  pole.position.set(-0.75, 0.35, 0)
-  boat.add(pole)
-  const boatGlow = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: glowTexture('rgba(255,230,180,1)', 'rgba(255,120,50,0.8)'),
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-  }))
-  boatGlow.scale.set(0.42, 0.42, 1)
-  boatGlow.position.set(-0.75, 0.68, 0)
-  boat.add(boatGlow)
-  const boatLight = new THREE.PointLight(0xffa050, 3.2, 4, 2)
-  boatLight.position.set(-0.75, 0.68, 0)
-  boat.add(boatLight)
-  return boat
-}
-const boat1 = makeBoat()
-const boat2 = makeBoat()
-boat2.scale.setScalar(0.8)
-scene.add(boat1, boat2)
-
 // fireflies drifting around the buildings
 const fireflyCount = 60
 const fireflyGeo = new THREE.BufferGeometry()
@@ -354,15 +374,11 @@ function frame() {
     u.glow.material.opacity = 0.85 * fade * (0.85 + Math.sin(t * 5 + u.sway) * 0.15)
   }
 
-  // boats circle the diorama like the Tokyo tram
-  const a1 = t * 0.07
-  boat1.position.set(Math.cos(a1) * 4.7, 0.01 + Math.sin(t * 0.8) * 0.012, Math.sin(a1) * 4.7)
-  boat1.rotation.y = -a1 - Math.PI / 2 // bow along the direction of travel
-  boat1.rotation.z = Math.sin(t * 0.9) * 0.02
-  const a2 = -t * 0.05 + 2.5
-  boat2.position.set(Math.cos(a2) * 5.6, 0.01 + Math.sin(t * 0.7 + 2) * 0.012, Math.sin(a2) * 5.6)
-  boat2.rotation.y = -a2 + Math.PI / 2
-  boat2.rotation.z = Math.sin(t * 0.8 + 1) * 0.02
+  // the carved sampan circles the diorama like Tokyo's tram
+  const a1 = t * 0.06
+  sail.position.set(Math.cos(a1) * 4.8, Math.sin(t * 0.8) * 0.012, Math.sin(a1) * 4.8)
+  sail.rotation.y = -a1 - Math.PI / 2 // bow along the direction of travel (hull long axis = x)
+  sail.rotation.z = Math.sin(t * 0.9) * 0.015
 
   // cinematic intro dolly, skipped on first interaction
   if (intro.active) {
