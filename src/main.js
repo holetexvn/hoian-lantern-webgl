@@ -189,6 +189,89 @@ for (let i = 0; i < 42; i++) {
 }
 scene.add(floaterGroup)
 
+// sky lanterns (đèn trời) rising into the night
+const skyLanterns = []
+const skyGroup = new THREE.Group()
+function lanternBodyTexture() {
+  const c = document.createElement('canvas')
+  c.width = 32; c.height = 64
+  const g = c.getContext('2d')
+  const gr = g.createLinearGradient(0, 64, 0, 0)
+  gr.addColorStop(0, '#ffdf9e')
+  gr.addColorStop(0.45, '#ff9e4a')
+  gr.addColorStop(1, '#c74e28')
+  g.fillStyle = gr
+  g.fillRect(0, 0, 32, 64)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  return t
+}
+const lanternTex = lanternBodyTexture()
+const lanternGlowTex = glowTexture('rgba(255,225,170,1)', 'rgba(255,140,50,0.75)')
+for (let i = 0; i < 22; i++) {
+  const lantern = new THREE.Group()
+  const body = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.045, 0.062, 0.15, 10, 1, true),
+    new THREE.MeshBasicMaterial({ map: lanternTex, side: THREE.DoubleSide, transparent: true })
+  )
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: lanternGlowTex, transparent: true, depthWrite: false,
+    blending: THREE.AdditiveBlending, opacity: 0.85,
+  }))
+  glow.scale.set(0.34, 0.34, 1)
+  lantern.add(body, glow)
+  lantern.userData = {
+    x: (Math.random() - 0.5) * 9,
+    z: (Math.random() - 0.5) * 9,
+    y: 2 + Math.random() * 7,
+    rise: 0.14 + Math.random() * 0.14,
+    sway: Math.random() * Math.PI * 2,
+    body, glow,
+  }
+  skyLanterns.push(lantern)
+  skyGroup.add(lantern)
+}
+scene.add(skyGroup)
+
+// the night boat — a dark sampan with a warm lantern, circling like Tokyo's tram
+function makeBoat() {
+  const boat = new THREE.Group()
+  const pts = []
+  for (let i = 0; i <= 8; i++) {
+    const a = (i / 8) * Math.PI * 0.5
+    pts.push(new THREE.Vector2(Math.sin(a) * 0.5, (1 - Math.cos(a)) * 0.28))
+  }
+  const hull = new THREE.Mesh(
+    new THREE.LatheGeometry(pts, 20),
+    new THREE.MeshStandardMaterial({ color: 0x0b0805, roughness: 0.75, metalness: 0.05, side: THREE.DoubleSide })
+  )
+  hull.rotation.x = Math.PI
+  hull.position.y = 0.15
+  hull.scale.set(2.2, 0.5, 0.4) // long, low sampan silhouette
+  boat.add(hull)
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.012, 0.012, 0.55, 6),
+    new THREE.MeshStandardMaterial({ color: 0x241608, roughness: 0.8 })
+  )
+  pole.position.set(-0.75, 0.35, 0)
+  boat.add(pole)
+  const boatGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture('rgba(255,230,180,1)', 'rgba(255,120,50,0.8)'),
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  }))
+  boatGlow.scale.set(0.42, 0.42, 1)
+  boatGlow.position.set(-0.75, 0.68, 0)
+  boat.add(boatGlow)
+  const boatLight = new THREE.PointLight(0xffa050, 3.2, 4, 2)
+  boatLight.position.set(-0.75, 0.68, 0)
+  boat.add(boatLight)
+  return boat
+}
+const boat1 = makeBoat()
+const boat2 = makeBoat()
+boat2.scale.setScalar(0.8)
+scene.add(boat1, boat2)
+
 // fireflies drifting around the buildings
 const fireflyCount = 60
 const fireflyGeo = new THREE.BufferGeometry()
@@ -214,6 +297,18 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight)
   composer.setSize(innerWidth, innerHeight)
 })
+
+// cinematic intro: glide up from the water to the hero view
+const intro = {
+  active: true, k: 0,
+  from: new THREE.Vector3(7.6, 0.55, 8.2),
+  to: new THREE.Vector3(5.4, 3.1, 6.8),
+  tFrom: new THREE.Vector3(0, 1.4, 0),
+  tTo: new THREE.Vector3(0, 0.85, 0),
+}
+camera.position.copy(intro.from)
+controls.target.copy(intro.tFrom)
+addEventListener('pointerdown', () => { intro.active = false }, { once: true })
 
 window.__dbg = { camera, controls, scene, THREE }
 
@@ -243,6 +338,40 @@ function frame() {
   warmA.intensity = 26 + Math.sin(t * 2.3) * 2.5   // gentle lantern flicker
   warmB.intensity = 14 + Math.sin(t * 1.7 + 1.2) * 1.6
   sign.rotation.x = Math.sin(t * 0.8) * 0.035 - 0.02  // sign swings gently in the breeze
+
+  // sky lanterns rise, sway, fade out high and respawn low
+  for (const l of skyLanterns) {
+    const u = l.userData
+    u.y += u.rise * dt
+    if (u.y > 10) {
+      u.y = 1.6 + Math.random() * 1.2
+      u.x = (Math.random() - 0.5) * 9
+      u.z = (Math.random() - 0.5) * 9
+    }
+    l.position.set(u.x + Math.sin(t * 0.4 + u.sway) * 0.35, u.y, u.z + Math.cos(t * 0.3 + u.sway) * 0.3)
+    const fade = Math.min(1, (u.y - 1.4) / 0.8) * Math.max(0, Math.min(1, (10 - u.y) / 2.5))
+    u.body.material.opacity = fade
+    u.glow.material.opacity = 0.85 * fade * (0.85 + Math.sin(t * 5 + u.sway) * 0.15)
+  }
+
+  // boats circle the diorama like the Tokyo tram
+  const a1 = t * 0.07
+  boat1.position.set(Math.cos(a1) * 4.7, 0.01 + Math.sin(t * 0.8) * 0.012, Math.sin(a1) * 4.7)
+  boat1.rotation.y = -a1 - Math.PI / 2 // bow along the direction of travel
+  boat1.rotation.z = Math.sin(t * 0.9) * 0.02
+  const a2 = -t * 0.05 + 2.5
+  boat2.position.set(Math.cos(a2) * 5.6, 0.01 + Math.sin(t * 0.7 + 2) * 0.012, Math.sin(a2) * 5.6)
+  boat2.rotation.y = -a2 + Math.PI / 2
+  boat2.rotation.z = Math.sin(t * 0.8 + 1) * 0.02
+
+  // cinematic intro dolly, skipped on first interaction
+  if (intro.active) {
+    intro.k = Math.min(1, intro.k + dt / 4.5)
+    const e = intro.k < 0.5 ? 2 * intro.k * intro.k : 1 - Math.pow(-2 * intro.k + 2, 2) / 2
+    camera.position.lerpVectors(intro.from, intro.to, e)
+    controls.target.lerpVectors(intro.tFrom, intro.tTo, e)
+    if (intro.k >= 1) intro.active = false
+  }
 
   controls.update()
   composer.render()
