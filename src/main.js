@@ -73,12 +73,20 @@ const loaderEl = document.querySelector('#loader')
 const fillEl = document.querySelector('#loader-fill')
 const pctEl = document.querySelector('#loader-pct')
 const manager = new THREE.LoadingManager()
-manager.onProgress = (_url, loaded, total) => {
-  const pct = Math.round((loaded / total) * 100)
+manager.onLoad = () => {
+  fillEl.style.width = '100%'
+  pctEl.textContent = '100%'
+  loaderEl.classList.add('done')
+}
+// LoadingManager.onProgress counts FILES (0/1 here) — real byte progress
+// comes from the loader's own xhr callback instead
+const GLB_BYTES = 19309512
+function onGlbProgress(e) {
+  const total = e.lengthComputable && e.total ? e.total : GLB_BYTES
+  const pct = Math.min(99, Math.round((e.loaded / total) * 100))
   fillEl.style.width = `${pct}%`
   pctEl.textContent = `${pct}%`
 }
-manager.onLoad = () => { loaderEl.classList.add('done') }
 
 // carve a region of the fused mesh into its own mesh (same attributes, new index)
 function extractRegion(mesh, worldBox) {
@@ -153,7 +161,7 @@ new GLTFLoader(manager).load('/models/hoian.glb', (gltf) => {
   const sailLight = new THREE.PointLight(0xffa050, 1.7, 4, 2)
   sailLight.position.y = 0.35
   sail.add(sailLight)
-})
+}, onGlbProgress)
 
 // HoleTex signboard — lacquered wood, gold lettering, hung above the front door
 function signTexture() {
